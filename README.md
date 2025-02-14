@@ -26,37 +26,24 @@ production project. Be prepared to discuss decisions you made.
 
 * **List all properties:** Display, in a tabular format, all properties and their geographic location (longitude and 
   latitude).
-  
-* **Property detail page:** Show detailed information about a given property, including its image, geographic location, 
-  and statistics (if applicable).
 
-* **Containerization:** Include Docker image(s) of your application when submitting your final code.
+* **Map view:** Implement an interactive map view using Mapbox, Leaflet, or similar package, initially showing all the properties as pins on the map. This map should be tied to the search functionality (see next feature), and filter the pins based on the search results. Selecting a pin on the map should display the property detail view for that location.
+  
+* **Property detail view:** Show detailed information about a given property, including its image, geographic location, 
+  and statistics (if applicable). This can be either a dedicated page or a popup/info modal in the map view.
 
 * **Search by coordinates:** Prompt the user for a longitude, latitude, and search radius (default 10000 meters) and 
   display, in a tabular format, the results of the search, including the properties' geographic location (longitude and 
-  latitude).
+  latitude). Pan the interactive map to the entered location and filter the pins to the returned search results. Also visually indicate the search radius on the map.
 
-* **Map view:** Using the 
-  [Google Maps JavaScript API](https://developers.google.com/maps/documentation/javascript/overview), display a map 
-  centered around either the user's current location, or an address they enter. Display a marker on the map for each 
-  property. Clicking on a marker should reveal an 
-  [Info Window](https://developers.google.com/maps/documentation/javascript/examples/infowindow-simple) with key 
-  property information.
+* **Image overlays:** Add polygonal overlays to property images (in the property detail page) to represent either the parcel, building, or both 
+  (`parcel_geo` and `buildings_geo` fields in the database). Add a mechanism that allows for parcel and building overlays to be toggled on/off independently on the image view.
 
-* **Save for later:** Allow users to save properties from the List, Search, Detail, and/or Map pages and visit their 
-  list of saved properties.
+## Non-Functional Requirements
 
-* **Image overlays:** Add polygonal overlays to property images to represent either the parcel, building, or both 
-  (`parcel_geo` and `buildings_geo` fields in the database).
+* **Containerization:** Include Docker image(s) of your application when submitting your final code.
 
-* **Statistics:** Calculate geographic data about all properties within a given distance from a reference property. 
-  Take *propertyId* and *distance* (in meters) as inputs. The API should return the following:
-  * parcel area (meters squared)
-  * buildings areas (array, meters squared)
-  * buildings distances to center (array, meters).  Distance to center is the distance from the building to the 
-    `geocode_geo` field in the property table.
-  * zone density (percentage).  Create a "zone" geography, which is a buffer of *distance* meters around the 
-    `geocode_geo` point. Then, calculate the percentage of that zone geography which has buildings in it.
+* **End-to-end Testing:** Implement automated E2E tests using Playwright (or similar tool) to cover critical user flows: property browsing, search functionality, and detail page navigation.
 
 ## Setup
 
@@ -77,20 +64,14 @@ property or address. There are three geography<sup>*</sup> fields and one field 
 ## API Specification
 The API you will be implementing for this project must adhere to the following API specification:
 
-### GET /display/:id?(overlay=yes(&parcel=:parcelColor)(&building=:buildingColor))
+### GET /display/:id
 
-*Fetches and displays property tile by ID. Optionally overlays parcel and building geometries on tile.*
+*Fetches and displays property tile by ID.*
 
-`example: GET localhost:1235/display/f853874999424ad2a5b6f37af6b56610?overlay=yes&building=green&parcel=orange`
+`example: GET localhost:1235/display/f853874999424ad2a5b6f37af6b56610`
 
 ##### Request Parameters
 - "id" | description: Property ID | type: string | required: true | validation: length greater than 0
-
-- "overlay" | description: Overlays parcel and building geometries on tile | type: string | required: false | validation: enum("yes")
-
-- "parcel" | description: Indicated building overlay color | type: string | required: false | validation: enum() ex. "red", "green", "orange"
-
-- "building" | description: Indicates building overlay color | type: string | required: false | validation: enum() ex. "red", "green", "orange"
 
 ##### Response
 JPEG image
@@ -130,31 +111,6 @@ example:
 
 ##### Response
 JSON array of property IDs
-
-***
-### GET /statistics/:id?distance=:distance
-
-*Returns various statistics for parcels and buildings found X meters around the requested property*
-
-`example: GET localhost:1235/statistics/f853874999424ad2a5b6f37af6b56610?distance=1755000`
-
-##### Request Parameters
-
-- "id" | description: Property ID | type: string | required: true | validation: length greater than 0
-
-- "distance" | description: Buffer distance | type: integer | required: true | validation: greater than 0
-
-##### Response
-JSON array including
-- "parcel_area_sqm" | description: Total area of the property's parcel, in square meters | type: float
-
-- "building_area_sqm" | description: Total area of buildings inside the property's parcel, in square meters | type: float
-
-- "building_distances_m" | description: Array of [distance, from the centroid of the property, to the centroid of each building, in meters] | type: List[float]
-
-- "zone_density" | description: Array of [density of each building's area as a ratio to parcel area, dimensionless] | type: List[float]
-***
-
 
 ## Submission instructions
 
